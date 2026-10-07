@@ -10,7 +10,6 @@ st.set_page_config(
     layout="centered"
 )
 
-# -------------------- SESSION STATE --------------------
 def init_state():
     defaults = {
         "password_input": "",
@@ -25,14 +24,12 @@ def init_state():
 
 init_state()
 
-# -------------------- STYLING --------------------
 st.markdown("""
 <style>
 .stApp { background:#0b1018; color:#eeeeee; }
 .block-container { max-width:760px; padding-top:1.2rem; padding-bottom:2rem; }
 .main-title { text-align:center; color:#00f5a0; font-family:"Courier New",monospace; font-size:42px; font-weight:bold; line-height:1.1; }
 .subtitle { text-align:center; color:#a7a7a7; font-family:"Courier New",monospace; font-size:17px; margin-bottom:25px; }
-.card { background:#111824; border:2px solid #192231; border-radius:8px; padding:22px; margin:12px 0; }
 .section-title { color:#00f5a0; font-family:"Courier New",monospace; font-size:25px; font-weight:bold; margin-bottom:12px; }
 .tip { background:#111824; border-left:4px solid #00f5a0; padding:14px; border-radius:5px; color:#eeeeee; }
 .console { background:#000000; color:#00f5a0; border-radius:6px; padding:16px; font-family:"Courier New",monospace; white-space:pre-wrap; min-height:80px; }
@@ -43,7 +40,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# -------------------- PASSWORD LOGIC --------------------
 def has_sequential_pattern(password):
     value = password.lower()
     for i in range(len(value) - 2):
@@ -53,7 +49,6 @@ def has_sequential_pattern(password):
         if b == a - 1 and c == b - 1:
             return True
     return False
-
 
 def calculate_crack_time(entropy):
     if entropy <= 0:
@@ -74,7 +69,6 @@ def calculate_crack_time(entropy):
         return f"{seconds / 31536000:.1f} years"
     return "Centuries+"
 
-
 def analyze_password(password):
     uppercase = bool(re.search(r"[A-Z]", password))
     lowercase = bool(re.search(r"[a-z]", password))
@@ -84,25 +78,41 @@ def analyze_password(password):
     sequential = has_sequential_pattern(password)
 
     pool = 0
-    if uppercase: pool += 26
-    if lowercase: pool += 26
-    if numbers: pool += 10
-    if symbols: pool += 33
+    if uppercase:
+        pool += 26
+    if lowercase:
+        pool += 26
+    if numbers:
+        pool += 10
+    if symbols:
+        pool += 33
 
     entropy = len(password) * math.log2(pool) if pool > 0 else 0
 
     score = 0
-    if len(password) >= 8: score += 20
-    if len(password) >= 12: score += 15
-    if len(password) >= 16: score += 10
-    if uppercase: score += 10
-    if lowercase: score += 10
-    if numbers: score += 10
-    if symbols: score += 15
-    if not repeated: score += 5
-    if not sequential: score += 5
-    if repeated: score -= 15
-    if sequential: score -= 15
+    if len(password) >= 8:
+        score += 20
+    if len(password) >= 12:
+        score += 15
+    if len(password) >= 16:
+        score += 10
+    if uppercase:
+        score += 10
+    if lowercase:
+        score += 10
+    if numbers:
+        score += 10
+    if symbols:
+        score += 15
+    if not repeated:
+        score += 5
+    if not sequential:
+        score += 5
+    if repeated:
+        score -= 15
+    if sequential:
+        score -= 15
+
     score = max(0, min(100, score))
 
     if score < 30:
@@ -115,14 +125,24 @@ def analyze_password(password):
         strength = "Very Strong"
 
     suggestions = []
-    if len(password) < 12: suggestions.append("Use at least 12 characters.")
-    if not uppercase: suggestions.append("Add uppercase letters.")
-    if not lowercase: suggestions.append("Add lowercase letters.")
-    if not numbers: suggestions.append("Add numbers.")
-    if not symbols: suggestions.append("Add special symbols.")
-    if repeated: suggestions.append("Avoid repeated characters.")
-    if sequential: suggestions.append("Avoid sequential patterns such as abc or 123.")
-    if not suggestions: suggestions.append("Excellent! Your password satisfies the main checks.")
+
+    if len(password) < 12:
+        suggestions.append("Use at least 12 characters.")
+    if not uppercase:
+        suggestions.append("Add uppercase letters.")
+    if not lowercase:
+        suggestions.append("Add lowercase letters.")
+    if not numbers:
+        suggestions.append("Add numbers.")
+    if not symbols:
+        suggestions.append("Add special symbols.")
+    if repeated:
+        suggestions.append("Avoid repeated characters.")
+    if sequential:
+        suggestions.append("Avoid sequential patterns such as abc or 123.")
+
+    if not suggestions:
+        suggestions.append("Excellent! Your password satisfies the main checks.")
 
     return {
         "uppercase": uppercase,
@@ -139,14 +159,20 @@ def analyze_password(password):
         "suggestions": suggestions,
     }
 
-
 def breach_check(password):
     common_passwords = {
-        "password", "123456", "12345678", "qwerty", "password123",
-        "admin", "welcome", "letmein", "abc123", "iloveyou"
+        "password",
+        "123456",
+        "12345678",
+        "qwerty",
+        "password123",
+        "admin",
+        "welcome",
+        "letmein",
+        "abc123",
+        "iloveyou"
     }
     return password.lower() in common_passwords
-
 
 def create_report(result):
     return f"""PASSWORD SECURITY ANALYSIS REPORT
@@ -178,14 +204,12 @@ Privacy Note:
 The actual password is not included in this report.
 """
 
-# -------------------- CALLBACKS --------------------
 def clear_password():
     st.session_state.password_input = ""
     st.session_state.result = None
     st.session_state.breach_result = None
     st.session_state.show_password = False
     st.session_state.log = "> Password cleared ✔"
-
 
 def reset_all():
     st.session_state.password_input = ""
@@ -194,18 +218,19 @@ def reset_all():
     st.session_state.show_password = False
     st.session_state.log = "> All data reset ✔\n> Ready for analysis..."
 
-
 def toggle_show():
     st.session_state.show_password = not st.session_state.show_password
 
-
 def check_password():
     password = st.session_state.password_input
+
     if not password:
         st.session_state.log = "> Please enter a password first."
         return
+
     r = analyze_password(password)
     st.session_state.result = r
+
     st.session_state.log = (
         "> Password analyzed ✔\n"
         f"> Strength: {r['strength']}\n"
@@ -213,27 +238,40 @@ def check_password():
         f"> Entropy: {r['entropy']:.1f} Bits"
     )
 
-
 def run_breach_check():
     password = st.session_state.password_input
+
     if not password:
         st.session_state.breach_result = "empty"
         st.session_state.log = "> Enter a password first."
+
     elif breach_check(password):
         st.session_state.breach_result = "common"
         st.session_state.log = "> Breach check completed\n> ⚠ Common password detected"
+
     else:
         st.session_state.breach_result = "not_found"
         st.session_state.log = "> Breach check completed\n> No local common-password match ✔"
 
-# -------------------- HEADER --------------------
-st.markdown('<div style="text-align:center;font-size:55px;">🛡</div>', unsafe_allow_html=True)
-st.markdown('<div class="main-title">Password<br>Strength Analyzer</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Cyber Security Project</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div style="text-align:center;font-size:55px;">🛡</div>',
+    unsafe_allow_html=True
+)
 
-# -------------------- INPUT CARD --------------------
-st.markdown('<div class="card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">🔴  🟡  🟢 &nbsp;&nbsp; Terminal</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="main-title">Password<br>Strength Analyzer</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="subtitle">Cyber Security Project</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="section-title">🔴  🟡  🟢 &nbsp;&nbsp; Terminal</div>',
+    unsafe_allow_html=True
+)
 
 st.text_input(
     "🔑 Password",
@@ -243,59 +281,99 @@ st.text_input(
 )
 
 c1, c2 = st.columns(2)
+
 with c1:
-    st.button("🔐  Check Password", use_container_width=True, type="primary", on_click=check_password)
+    st.button(
+        "🔐  Check Password",
+        use_container_width=True,
+        type="primary",
+        on_click=check_password
+    )
+
 with c2:
     show_text = "🙈  Hide" if st.session_state.show_password else "👁  Show"
-    st.button(show_text, use_container_width=True, on_click=toggle_show)
+
+    st.button(
+        show_text,
+        use_container_width=True,
+        on_click=toggle_show
+    )
 
 c3, c4 = st.columns(2)
+
 with c3:
-    st.button("📋  Copy", use_container_width=True, on_click=None)
+    st.button(
+        "📋  Copy",
+        use_container_width=True,
+        on_click=None
+    )
+
 with c4:
-    st.button("🗑  Clear", use_container_width=True, on_click=clear_password)
+    st.button(
+        "🗑  Clear",
+        use_container_width=True,
+        on_click=clear_password
+    )
 
-st.button("🐞  Breach Check", use_container_width=True, on_click=run_breach_check)
-st.markdown('</div>', unsafe_allow_html=True)
+st.button(
+    "🐞  Breach Check",
+    use_container_width=True,
+    on_click=run_breach_check
+)
 
-# Copy button is rendered separately so browser clipboard can be used without storing the password server-side.
 if st.session_state.password_input:
-    safe_password = st.session_state.password_input.replace('\\', '\\\\').replace('`', '\\`').replace('${', '\\${')
-    st.markdown("<div style='height:0;overflow:hidden'>", unsafe_allow_html=True)
-    components.html(f"""
-    <script>
-    const parent = window.parent.document;
-    const buttons = Array.from(parent.querySelectorAll('button')).filter(b => b.innerText.includes('📋'));
-    buttons.forEach(btn => {{
-        btn.onclick = async () => {{
-            try {{
-                await navigator.clipboard.writeText(`{safe_password}`);
-            }} catch(e) {{
-                const area = document.createElement('textarea');
-                area.value = `{safe_password}`;
-                document.body.appendChild(area);
-                area.select();
-                document.execCommand('copy');
-                area.remove();
-            }}
-        }};
-    }});
-    </script>
-    """, height=0)
-    st.markdown("</div>", unsafe_allow_html=True)
+    safe_password = (
+        st.session_state.password_input
+        .replace("\\", "\\\\")
+        .replace("`", "\\`")
+        .replace("${", "\\${")
+    )
 
-# -------------------- BREACH MESSAGE --------------------
+    components.html(
+        f"""
+        <script>
+        const parent = window.parent.document;
+
+        const buttons = Array.from(
+            parent.querySelectorAll('button')
+        ).filter(
+            b => b.innerText.includes('📋')
+        );
+
+        buttons.forEach(btn => {{
+            btn.onclick = async () => {{
+                try {{
+                    await navigator.clipboard.writeText(`{safe_password}`);
+                }} catch(e) {{
+                    const area = document.createElement('textarea');
+                    area.value = `{safe_password}`;
+                    document.body.appendChild(area);
+                    area.select();
+                    document.execCommand('copy');
+                    area.remove();
+                }}
+            }};
+        }});
+        </script>
+        """,
+        height=0
+    )
+
 breach_result = st.session_state.breach_result
+
 if breach_result == "empty":
     st.warning("Enter a password first.")
-elif breach_result == "common":
-    st.warning("⚠️ Warning: This password appears in the local common-password list.")
-elif breach_result == "not_found":
-    st.info("No match found in the local common-password list.")
 
-# -------------------- RESULTS --------------------
-# Show every project section from the beginning. Before the first check,
-# result fields display safe default values; after Check Password they update.
+elif breach_result == "common":
+    st.warning(
+        "⚠️ Warning: This password appears in the local common-password list."
+    )
+
+elif breach_result == "not_found":
+    st.info(
+        "No match found in the local common-password list."
+    )
+
 result = st.session_state.result
 
 score = result["score"] if result else 0
@@ -304,50 +382,69 @@ crack_time = result["crack_time"] if result else "--"
 length = result["length"] if result else 0
 strength = result["strength"] if result else "--"
 
-# Password Strength
-st.markdown('<div class="card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">Password Strength</div>', unsafe_allow_html=True)
-st.progress(score / 100)
-st.markdown(f'<div class="strength-label">{strength}</div>', unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-title">Password Strength</div>',
+    unsafe_allow_html=True
+)
 
-# Security Details: Score, Entropy, Crack Time, Password Length
-st.markdown('<div class="card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">Security Details</div>', unsafe_allow_html=True)
+st.progress(score / 100)
+
+st.markdown(
+    f'<div class="strength-label">{strength}</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="section-title">Security Details</div>',
+    unsafe_allow_html=True
+)
+
 a, b = st.columns(2)
+
 with a:
     st.metric("Score", f"{score}%")
     st.metric("Entropy", f"{entropy:.1f} Bits")
+
 with b:
     st.metric("Crack Time", crack_time)
     st.metric("Password Length", length)
-st.markdown('</div>', unsafe_allow_html=True)
 
-# Suggestions
-st.markdown('<div class="card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">Suggestions</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-title">Suggestions</div>',
+    unsafe_allow_html=True
+)
+
 if result:
     for item in result["suggestions"]:
         st.markdown(f"💡 {item}")
 else:
     st.markdown("Waiting for password analysis...")
-st.markdown('</div>', unsafe_allow_html=True)
 
-# Security Tip
-st.markdown('<div class="card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">Security Tip</div>', unsafe_allow_html=True)
-st.markdown('<div class="tip">Use unique passwords. Avoid names, birthdays, common words and predictable patterns.</div>', unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-title">Security Tip</div>',
+    unsafe_allow_html=True
+)
 
-# Console
-st.markdown('<div class="card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">Console</div>', unsafe_allow_html=True)
-st.markdown(f'<div class="console">{st.session_state.log}</div>', unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="tip">Use unique passwords. Avoid names, birthdays, common words and predictable patterns.</div>',
+    unsafe_allow_html=True
+)
 
-# Password Analysis
-st.markdown('<div class="card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">Password Analysis</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-title">Console</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    f'<div class="console">{st.session_state.log}</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="section-title">Password Analysis</div>',
+    unsafe_allow_html=True
+)
+
 checks = [
     ("Uppercase", result["uppercase"] if result else False),
     ("Lowercase", result["lowercase"] if result else False),
@@ -356,15 +453,21 @@ checks = [
     ("Repeated Characters", result["repeated"] if result else False),
     ("Sequential Pattern", result["sequential"] if result else False),
 ]
+
 for label, passed in checks:
     icon = "✓" if passed else "✕"
     cls = "check-ok" if passed else "check-no"
-    st.markdown(f'<div class="analysis-row"><span>{label}</span><span class="{cls}">{icon}</span></div>', unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
 
-# Export Report
-st.markdown('<div class="card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">Export Report</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="analysis-row"><span>{label}</span><span class="{cls}">{icon}</span></div>',
+        unsafe_allow_html=True
+    )
+
+st.markdown(
+    '<div class="section-title">Export Report</div>',
+    unsafe_allow_html=True
+)
+
 if result:
     st.download_button(
         "📄  Export Report",
@@ -375,15 +478,27 @@ if result:
         type="primary"
     )
 else:
-    st.button("📄  Export Report", use_container_width=True, disabled=True)
-    st.caption("Check a password before exporting a report.")
-st.markdown('</div>', unsafe_allow_html=True)
+    st.button(
+        "📄  Export Report",
+        use_container_width=True,
+        disabled=True
+    )
 
-# -------------------- RESET --------------------
-st.button("🔄  Reset", use_container_width=True, type="primary", on_click=reset_all)
+    st.caption(
+        "Check a password before exporting a report."
+    )
+
+st.button(
+    "🔄  Reset",
+    use_container_width=True,
+    type="primary",
+    on_click=reset_all
+)
 
 st.markdown(
     '<div style="text-align:center;color:#a7a7a7;font-family:Courier New,monospace;margin-top:25px;">'
-    '© 2026 Password Strength Analyzer<br>Developed for Cyber Security Project</div>',
+    '© 2026 Password Strength Analyzer<br>'
+    'Developed for Cyber Security Project'
+    '</div>',
     unsafe_allow_html=True
 )

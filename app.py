@@ -26,47 +26,141 @@ init_state()
 
 st.markdown("""
 <style>
-.stApp { background:#0b1018; color:#eeeeee; }
-.block-container { max-width:760px; padding-top:1.2rem; padding-bottom:2rem; }
-.main-title { text-align:center; color:#00f5a0; font-family:"Courier New",monospace; font-size:42px; font-weight:bold; line-height:1.1; }
-.subtitle { text-align:center; color:#a7a7a7; font-family:"Courier New",monospace; font-size:17px; margin-bottom:25px; }
-.section-title { color:#00f5a0; font-family:"Courier New",monospace; font-size:25px; font-weight:bold; margin-bottom:12px; }
-.tip { background:#111824; border-left:4px solid #00f5a0; padding:14px; border-radius:5px; color:#eeeeee; }
-.console { background:#000000; color:#00f5a0; border-radius:6px; padding:16px; font-family:"Courier New",monospace; white-space:pre-wrap; min-height:80px; }
-.analysis-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; color:#eeeeee; font-family:"Courier New",monospace; font-size:15px; border-bottom:1px solid #192231; }
-.check-ok { color:#00f5a0; font-weight:bold; font-size:20px; }
-.check-no { color:#ff4040; font-weight:bold; font-size:20px; }
-.strength-label { text-align:center; color:#00f5a0; font-family:"Courier New",monospace; font-size:28px; font-weight:bold; margin-top:8px; }
+.stApp {
+    background:#0b1018;
+    color:#eeeeee;
+}
+
+.block-container {
+    max-width:760px;
+    padding-top:1.2rem;
+    padding-bottom:2rem;
+}
+
+.main-title {
+    text-align:center;
+    color:#00f5a0;
+    font-family:"Courier New",monospace;
+    font-size:42px;
+    font-weight:bold;
+    line-height:1.1;
+}
+
+.subtitle {
+    text-align:center;
+    color:#a7a7a7;
+    font-family:"Courier New",monospace;
+    font-size:17px;
+    margin-bottom:25px;
+}
+
+.section-title {
+    color:#00f5a0;
+    font-family:"Courier New",monospace;
+    font-size:25px;
+    font-weight:bold;
+    margin-bottom:12px;
+}
+
+.section-divider {
+    border:0;
+    border-top:1px solid #00f5a0;
+    margin:25px 0;
+}
+
+.tip {
+    background:#111824;
+    border-left:4px solid #00f5a0;
+    padding:14px;
+    border-radius:5px;
+    color:#eeeeee;
+}
+
+.console {
+    background:#000000;
+    color:#00f5a0;
+    border-radius:6px;
+    padding:16px;
+    font-family:"Courier New",monospace;
+    white-space:pre-wrap;
+    min-height:80px;
+}
+
+.analysis-row {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:6px 0;
+    color:#eeeeee;
+    font-family:"Courier New",monospace;
+    font-size:15px;
+    border-bottom:1px solid #192231;
+}
+
+.check-ok {
+    color:#00f5a0;
+    font-weight:bold;
+    font-size:20px;
+}
+
+.check-no {
+    color:#ff4040;
+    font-weight:bold;
+    font-size:20px;
+}
+
+.strength-label {
+    text-align:center;
+    color:#00f5a0;
+    font-family:"Courier New",monospace;
+    font-size:28px;
+    font-weight:bold;
+    margin-top:8px;
+}
 </style>
 """, unsafe_allow_html=True)
 
 def has_sequential_pattern(password):
     value = password.lower()
+
     for i in range(len(value) - 2):
-        a, b, c = ord(value[i]), ord(value[i + 1]), ord(value[i + 2])
+        a = ord(value[i])
+        b = ord(value[i + 1])
+        c = ord(value[i + 2])
+
         if b == a + 1 and c == b + 1:
             return True
+
         if b == a - 1 and c == b - 1:
             return True
+
     return False
 
 def calculate_crack_time(entropy):
     if entropy <= 0:
         return "--"
+
     guesses = 2 ** entropy
     seconds = guesses / 1000000000
+
     if seconds < 1:
         return "< 1 sec"
+
     if seconds < 60:
         return f"{seconds:.1f} sec"
+
     if seconds < 3600:
         return f"{seconds / 60:.1f} min"
+
     if seconds < 86400:
         return f"{seconds / 3600:.1f} hours"
+
     if seconds < 31536000:
         return f"{seconds / 86400:.1f} days"
+
     if seconds < 3153600000:
         return f"{seconds / 31536000:.1f} years"
+
     return "Centuries+"
 
 def analyze_password(password):
@@ -74,42 +168,58 @@ def analyze_password(password):
     lowercase = bool(re.search(r"[a-z]", password))
     numbers = bool(re.search(r"[0-9]", password))
     symbols = bool(re.search(r"[^A-Za-z0-9]", password))
+
     repeated = bool(re.search(r"(.)\1{2,}", password))
     sequential = has_sequential_pattern(password)
 
     pool = 0
+
     if uppercase:
         pool += 26
+
     if lowercase:
         pool += 26
+
     if numbers:
         pool += 10
+
     if symbols:
         pool += 33
 
     entropy = len(password) * math.log2(pool) if pool > 0 else 0
 
     score = 0
+
     if len(password) >= 8:
         score += 20
+
     if len(password) >= 12:
         score += 15
+
     if len(password) >= 16:
         score += 10
+
     if uppercase:
         score += 10
+
     if lowercase:
         score += 10
+
     if numbers:
         score += 10
+
     if symbols:
         score += 15
+
     if not repeated:
         score += 5
+
     if not sequential:
         score += 5
+
     if repeated:
         score -= 15
+
     if sequential:
         score -= 15
 
@@ -128,16 +238,22 @@ def analyze_password(password):
 
     if len(password) < 12:
         suggestions.append("Use at least 12 characters.")
+
     if not uppercase:
         suggestions.append("Add uppercase letters.")
+
     if not lowercase:
         suggestions.append("Add lowercase letters.")
+
     if not numbers:
         suggestions.append("Add numbers.")
+
     if not symbols:
         suggestions.append("Add special symbols.")
+
     if repeated:
         suggestions.append("Avoid repeated characters.")
+
     if sequential:
         suggestions.append("Avoid sequential patterns such as abc or 123.")
 
@@ -172,6 +288,7 @@ def breach_check(password):
         "abc123",
         "iloveyou"
     }
+
     return password.lower() in common_passwords
 
 def create_report(result):
@@ -228,14 +345,15 @@ def check_password():
         st.session_state.log = "> Please enter a password first."
         return
 
-    r = analyze_password(password)
-    st.session_state.result = r
+    result = analyze_password(password)
+
+    st.session_state.result = result
 
     st.session_state.log = (
         "> Password analyzed ✔\n"
-        f"> Strength: {r['strength']}\n"
-        f"> Score: {r['score']}%\n"
-        f"> Entropy: {r['entropy']:.1f} Bits"
+        f"> Strength: {result['strength']}\n"
+        f"> Score: {result['score']}%\n"
+        f"> Entropy: {result['entropy']:.1f} Bits"
     )
 
 def run_breach_check():
@@ -247,11 +365,17 @@ def run_breach_check():
 
     elif breach_check(password):
         st.session_state.breach_result = "common"
-        st.session_state.log = "> Breach check completed\n> ⚠ Common password detected"
+        st.session_state.log = (
+            "> Breach check completed\n"
+            "> ⚠ Common password detected"
+        )
 
     else:
         st.session_state.breach_result = "not_found"
-        st.session_state.log = "> Breach check completed\n> No local common-password match ✔"
+        st.session_state.log = (
+            "> Breach check completed\n"
+            "> No local common-password match ✔"
+        )
 
 st.markdown(
     '<div style="text-align:center;font-size:55px;">🛡</div>',
@@ -269,7 +393,7 @@ st.markdown(
 )
 
 st.markdown(
-    '<div class="section-title">🔴  🟡  🟢 &nbsp;&nbsp; Terminal</div>',
+    '<div class="section-title">🔴 🟡 🟢 &nbsp;&nbsp; Terminal</div>',
     unsafe_allow_html=True
 )
 
@@ -284,14 +408,18 @@ c1, c2 = st.columns(2)
 
 with c1:
     st.button(
-        "🔐  Check Password",
+        "🔐 Check Password",
         use_container_width=True,
         type="primary",
         on_click=check_password
     )
 
 with c2:
-    show_text = "🙈  Hide" if st.session_state.show_password else "👁  Show"
+    show_text = (
+        "🙈 Hide"
+        if st.session_state.show_password
+        else "👁 Show"
+    )
 
     st.button(
         show_text,
@@ -303,25 +431,25 @@ c3, c4 = st.columns(2)
 
 with c3:
     st.button(
-        "📋  Copy",
-        use_container_width=True,
-        on_click=None
+        "📋 Copy",
+        use_container_width=True
     )
 
 with c4:
     st.button(
-        "🗑  Clear",
+        "🗑 Clear",
         use_container_width=True,
         on_click=clear_password
     )
 
 st.button(
-    "🐞  Breach Check",
+    "🐞 Breach Check",
     use_container_width=True,
     on_click=run_breach_check
 )
 
 if st.session_state.password_input:
+
     safe_password = (
         st.session_state.password_input
         .replace("\\", "\\\\")
@@ -395,6 +523,11 @@ st.markdown(
 )
 
 st.markdown(
+    '<div class="section-divider"></div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
     '<div class="section-title">Security Details</div>',
     unsafe_allow_html=True
 )
@@ -410,6 +543,11 @@ with b:
     st.metric("Password Length", length)
 
 st.markdown(
+    '<div class="section-divider"></div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
     '<div class="section-title">Suggestions</div>',
     unsafe_allow_html=True
 )
@@ -421,12 +559,24 @@ else:
     st.markdown("Waiting for password analysis...")
 
 st.markdown(
+    '<div class="section-divider"></div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
     '<div class="section-title">Security Tip</div>',
     unsafe_allow_html=True
 )
 
 st.markdown(
-    '<div class="tip">Use unique passwords. Avoid names, birthdays, common words and predictable patterns.</div>',
+    '<div class="tip">'
+    'Use unique passwords. Avoid names, birthdays, common words and predictable patterns.'
+    '</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="section-divider"></div>',
     unsafe_allow_html=True
 )
 
@@ -437,6 +587,11 @@ st.markdown(
 
 st.markdown(
     f'<div class="console">{st.session_state.log}</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="section-divider"></div>',
     unsafe_allow_html=True
 )
 
@@ -455,13 +610,22 @@ checks = [
 ]
 
 for label, passed in checks:
+
     icon = "✓" if passed else "✕"
     cls = "check-ok" if passed else "check-no"
 
     st.markdown(
-        f'<div class="analysis-row"><span>{label}</span><span class="{cls}">{icon}</span></div>',
+        f'<div class="analysis-row">'
+        f'<span>{label}</span>'
+        f'<span class="{cls}">{icon}</span>'
+        f'</div>',
         unsafe_allow_html=True
     )
+
+st.markdown(
+    '<div class="section-divider"></div>',
+    unsafe_allow_html=True
+)
 
 st.markdown(
     '<div class="section-title">Export Report</div>',
@@ -469,17 +633,20 @@ st.markdown(
 )
 
 if result:
+
     st.download_button(
-        "📄  Export Report",
+        "📄 Export Report",
         data=create_report(result),
         file_name="password_security_report.txt",
         mime="text/plain",
         use_container_width=True,
         type="primary"
     )
+
 else:
+
     st.button(
-        "📄  Export Report",
+        "📄 Export Report",
         use_container_width=True,
         disabled=True
     )
@@ -488,15 +655,21 @@ else:
         "Check a password before exporting a report."
     )
 
+st.markdown(
+    '<div class="section-divider"></div>',
+    unsafe_allow_html=True
+)
+
 st.button(
-    "🔄  Reset",
+    "🔄 Reset",
     use_container_width=True,
     type="primary",
     on_click=reset_all
 )
 
 st.markdown(
-    '<div style="text-align:center;color:#a7a7a7;font-family:Courier New,monospace;margin-top:25px;">'
+    '<div style="text-align:center;color:#a7a7a7;'
+    'font-family:Courier New,monospace;margin-top:25px;">'
     '© 2026 Password Strength Analyzer<br>'
     'Developed for Cyber Security Project'
     '</div>',

@@ -3,7 +3,7 @@ import streamlit.components.v1 as components
 import math
 import re
 from datetime import datetime
-from zoneinfo import ZoneInfo
+
 st.set_page_config(
     page_title="Password Strength Analyzer",
     page_icon="🛡️",
@@ -153,7 +153,7 @@ def create_report(result):
 ==================================
 
 Date:
-{datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d-%m-%Y %H:%M:%S")}
+{datetime.now().strftime('%d-%m-%Y %H:%M:%S')}
 
 Password Length:
 {result['length']}
@@ -294,57 +294,78 @@ elif breach_result == "not_found":
     st.info("No match found in the local common-password list.")
 
 # -------------------- RESULTS --------------------
+# Show every project section from the beginning. Before the first check,
+# result fields display safe default values; after Check Password they update.
 result = st.session_state.result
+
+score = result["score"] if result else 0
+entropy = result["entropy"] if result else 0
+crack_time = result["crack_time"] if result else "--"
+length = result["length"] if result else 0
+strength = result["strength"] if result else "--"
+
+# Password Strength
+st.markdown('<div class="card">', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Password Strength</div>', unsafe_allow_html=True)
+st.progress(score / 100)
+st.markdown(f'<div class="strength-label">{strength}</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Security Details: Score, Entropy, Crack Time, Password Length
+st.markdown('<div class="card">', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Security Details</div>', unsafe_allow_html=True)
+a, b = st.columns(2)
+with a:
+    st.metric("Score", f"{score}%")
+    st.metric("Entropy", f"{entropy:.1f} Bits")
+with b:
+    st.metric("Crack Time", crack_time)
+    st.metric("Password Length", length)
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Suggestions
+st.markdown('<div class="card">', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Suggestions</div>', unsafe_allow_html=True)
 if result:
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">Password Strength</div>', unsafe_allow_html=True)
-    st.progress(result["score"] / 100)
-    st.markdown(f'<div class="strength-label">{result["strength"]}</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">Security Details</div>', unsafe_allow_html=True)
-    a, b = st.columns(2)
-    with a:
-        st.metric("Score", f'{result["score"]}%')
-        st.metric("Entropy", f'{result["entropy"]:.1f} Bits')
-    with b:
-        st.metric("Crack Time", result["crack_time"])
-        st.metric("Password Length", result["length"])
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">Suggestions</div>', unsafe_allow_html=True)
     for item in result["suggestions"]:
         st.markdown(f"💡 {item}")
-    st.markdown('</div>', unsafe_allow_html=True)
+else:
+    st.markdown("Waiting for password analysis...")
+st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">Security Tip</div>', unsafe_allow_html=True)
-    st.markdown('<div class="tip">Use unique passwords. Avoid names, birthdays, common words and predictable patterns.</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+# Security Tip
+st.markdown('<div class="card">', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Security Tip</div>', unsafe_allow_html=True)
+st.markdown('<div class="tip">Use unique passwords. Avoid names, birthdays, common words and predictable patterns.</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">Console</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="console">{st.session_state.log}</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+# Console
+st.markdown('<div class="card">', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Console</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="console">{st.session_state.log}</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">Password Analysis</div>', unsafe_allow_html=True)
-    checks = [
-        ("Uppercase", result["uppercase"]),
-        ("Lowercase", result["lowercase"]),
-        ("Numbers", result["numbers"]),
-        ("Symbols", result["symbols"]),
-        ("Repeated Characters", result["repeated"]),
-        ("Sequential Pattern", result["sequential"]),
-    ]
-    for label, passed in checks:
-        icon = "✓" if passed else "✕"
-        cls = "check-ok" if passed else "check-no"
-        st.markdown(f'<div class="analysis-row"><span>{label}</span><span class="{cls}">{icon}</span></div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+# Password Analysis
+st.markdown('<div class="card">', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Password Analysis</div>', unsafe_allow_html=True)
+checks = [
+    ("Uppercase", result["uppercase"] if result else False),
+    ("Lowercase", result["lowercase"] if result else False),
+    ("Numbers", result["numbers"] if result else False),
+    ("Symbols", result["symbols"] if result else False),
+    ("Repeated Characters", result["repeated"] if result else False),
+    ("Sequential Pattern", result["sequential"] if result else False),
+]
+for label, passed in checks:
+    icon = "✓" if passed else "✕"
+    cls = "check-ok" if passed else "check-no"
+    st.markdown(f'<div class="analysis-row"><span>{label}</span><span class="{cls}">{icon}</span></div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
+# Export Report
+st.markdown('<div class="card">', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Export Report</div>', unsafe_allow_html=True)
+if result:
     st.download_button(
         "📄  Export Report",
         data=create_report(result),
@@ -354,11 +375,9 @@ if result:
         type="primary"
     )
 else:
-    # Keep the console visible even before the first analysis.
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">Console</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="console">{st.session_state.log}</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.button("📄  Export Report", use_container_width=True, disabled=True)
+    st.caption("Check a password before exporting a report.")
+st.markdown('</div>', unsafe_allow_html=True)
 
 # -------------------- RESET --------------------
 st.button("🔄  Reset", use_container_width=True, type="primary", on_click=reset_all)

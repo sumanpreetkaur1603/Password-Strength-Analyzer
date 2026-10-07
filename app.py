@@ -3,6 +3,7 @@ import streamlit.components.v1 as components
 import math
 import re
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 st.set_page_config(
     page_title="Password Strength Analyzer",
@@ -296,7 +297,7 @@ def create_report(result):
 ==================================
 
 Date:
-{datetime.now().strftime('%d-%m-%Y %H:%M:%S')}
+{datetime.now(ZoneInfo("Asia/Kolkata")).strftime('%d-%m-%Y %H:%M:%S')}
 
 Password Length:
 {result['length']}
